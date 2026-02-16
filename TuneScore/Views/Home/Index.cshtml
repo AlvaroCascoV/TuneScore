@@ -1,0 +1,10 @@
+﻿@model IEnumerable<TuneScore.Models.Song>
+
+<h1>TuneScore Songs</h1>
+
+<ul>
+    @foreach (var song in Model)
+    {
+        <li>@song.Title - @song.Album.Title - @song.Album.Artist.Name</li>
+    }
+</ul>
