@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TuneScore.Data;
+using TuneScore.Repositories;
+using TuneScore.Repositories.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,14 +11,14 @@ builder.Services.AddControllersWithViews();
 
 
 
+builder.Services.AddScoped<IRepositoryAlbums, RepositoryAlbums>();
 
-//builder.Services.AddTransient<RepositoryEnfermos>();
+
+
+
+
 builder.Services.AddDbContext<TuneScoreContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TuneScoreDB")));
-
-
-
-
 
 var app = builder.Build();
 
