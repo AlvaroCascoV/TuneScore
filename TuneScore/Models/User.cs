@@ -26,9 +26,13 @@ public partial class User
     [Column("PasswordHash")]
     public string PasswordHash { get; set; } = null!;
 
+    [Column("PasswordPlain")]
+    public byte[] PasswordPlain { get; set; } = null!;
+
     [StringLength(20)]
     [Column("Role")]
     public string Role { get; set; } = null!;
+
     [Column("CreatedAt")]
     public DateTime CreatedAt { get; set; }
 

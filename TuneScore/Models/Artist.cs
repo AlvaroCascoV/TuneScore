@@ -16,8 +16,8 @@ public partial class Artist
     [Column("Name")]
     public string Name { get; set; } = null!;
     [StringLength(300)]
-    [Column("ImageUrl")]
-    public string? ImageUrl { get; set; }
+    [Column("ImageName")]
+    public string? ImageName { get; set; }
     [Column("CreatedAt")]
     public DateTime CreatedAt { get; set; }
 

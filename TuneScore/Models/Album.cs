@@ -21,8 +21,8 @@ public partial class Album
     [Column("ArtistId")]
     public int ArtistId { get; set; }
     [StringLength(300)]
-    [Column("ImageUrl")]
-    public string? ImageUrl { get; set; }
+    [Column("ImageName")]
+    public string? ImageName { get; set; }
     [Column("CreatedAt")]
     public DateTime CreatedAt { get; set; }
 
