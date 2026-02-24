@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using TuneScore.Data;
+using TuneScore.Helpers;
 using TuneScore.Models;
 
 namespace TuneScore.Controllers
@@ -13,10 +14,12 @@ namespace TuneScore.Controllers
     public class AlbumsController : Controller
     {
         private readonly TuneScoreContext _context;
+        private HelperPathProvider helperPath;
 
-        public AlbumsController(TuneScoreContext context)
+        public AlbumsController(TuneScoreContext context, HelperPathProvider helperPath)
         {
             _context = context;
+            this.helperPath = helperPath;
         }
 
         // GET: Albums
@@ -57,14 +60,40 @@ namespace TuneScore.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,ReleaseYear,ArtistId,ImageUrl,CreatedAt")] Album album)
+        public async Task<IActionResult> Create([Bind("Id,Title,ReleaseYear,ArtistId,CreatedAt")] Album album, IFormFile fichero)
         {
+            if (fichero == null || !fichero.ContentType.StartsWith("image/"))
+            {
+                ModelState.AddModelError("", "Debe subir una imagen válida.");
+                return View(album);
+            }
             if (ModelState.IsValid)
             {
+                if (fichero != null && fichero.Length > 0)
+                {
+                    // Generar nombre único
+                    string extension = Path.GetExtension(fichero.FileName);
+                    string fileName = Guid.NewGuid().ToString() + extension;
+
+                    string path = this.helperPath.MapPath(fileName, Folders.Albums);
+
+                    using (Stream stream = new FileStream(path, FileMode.Create))
+                    {
+                        await fichero.CopyToAsync(stream);
+                    }
+
+                    // GUARDAMOS el nombre en la BD
+                    album.ImageName = fileName;
+                }
+
+                album.CreatedAt = DateTime.Now;
+
                 _context.Add(album);
                 await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
+
             ViewData["ArtistId"] = new SelectList(_context.Artists, "Id", "Id", album.ArtistId);
             return View(album);
         }
@@ -91,35 +120,57 @@ namespace TuneScore.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,ReleaseYear,ArtistId,ImageUrl,CreatedAt")] Album album)
+        public async Task<IActionResult> Edit(int id, Album album, IFormFile fichero)
         {
-            if (id != album.Id)
+            if (id != album.Id) return NotFound();
+
+            var albumDb = await _context.Albums.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
+            if (albumDb == null) return NotFound();
+
+            // Manually update fields to avoid model binding issues
+            albumDb.Title = album.Title;
+            albumDb.ReleaseYear = album.ReleaseYear;
+            albumDb.ArtistId = album.ArtistId;
+
+            // File upload
+            if (fichero != null && fichero.Length > 0)
             {
-                return NotFound();
+                if (!fichero.ContentType.StartsWith("image/"))
+                {
+                    ModelState.AddModelError("", "Solo se permiten imágenes.");
+                    ViewData["ArtistId"] = new SelectList(_context.Artists, "Id", "Id", albumDb.ArtistId);
+                    return View(albumDb);
+                }
+
+                // Delete old image
+                if (!string.IsNullOrEmpty(albumDb.ImageName))
+                {
+                    string oldPath = helperPath.MapPath(albumDb.ImageName, Folders.Albums);
+                    if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+                }
+
+                string extension = Path.GetExtension(fichero.FileName);
+                // Remove invalid filename chars and spaces
+                string safeTitle = string.Concat(album.Title.Where(c => !Path.GetInvalidFileNameChars().Contains(c)));
+                safeTitle = safeTitle.Replace(" ", "");
+
+                // Add "Icon" and the original extension
+                string fileName = $"{safeTitle}Icon{extension}";
+
+                string path = helperPath.MapPath(fileName, Folders.Albums);
+
+                using (Stream stream = new FileStream(path, FileMode.Create))
+                {
+                    await fichero.CopyToAsync(stream);
+                }
+
+                albumDb.ImageName = fileName;
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(album);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!AlbumExists(album.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["ArtistId"] = new SelectList(_context.Artists, "Id", "Id", album.ArtistId);
-            return View(album);
+            _context.Update(albumDb);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Albums/Delete/5

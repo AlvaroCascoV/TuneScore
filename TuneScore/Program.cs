@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TuneScore.Data;
+using TuneScore.Helpers;
 using TuneScore.Repositories;
 using TuneScore.Repositories.Interfaces;
 
@@ -11,6 +12,7 @@ builder.Services.AddControllersWithViews();
 
 
 
+builder.Services.AddSingleton<HelperPathProvider>();
 builder.Services.AddScoped<IRepositoryAlbums, RepositoryAlbums>();
 
 
@@ -31,6 +33,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
