@@ -28,6 +28,10 @@ public partial class TuneScoreContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<V_UserLogin> V_UserLogin { get; set; }
+
+    public virtual DbSet<UserSalt> UserSalts { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Data Source=LOCALHOST\\DEVELOPER;Initial Catalog=TuneScoreDB;Persist Security Info=True;User ID=sa;Trust Server Certificate=True;");
@@ -85,6 +89,22 @@ public partial class TuneScoreContext : DbContext
 
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.Role).HasDefaultValue("User");
+        });
+
+        modelBuilder.Entity<V_UserLogin>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("V_UserLogin");
+        });
+
+        modelBuilder.Entity<UserSalt>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.HasOne<User>()
+                .WithOne()
+                .HasForeignKey<UserSalt>(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);
