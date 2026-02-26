@@ -45,5 +45,29 @@ namespace TuneScore.Repositories
             // Guardo la id autoincremental del usuario
             registerModel.IdUser = newUser.Id;
         }
+
+        public async Task<User?> GetUserByIdAsync(int userId)
+        {
+            return await _context.Users.FindAsync(userId);
+        }
+
+        public async Task<User?> GetUserByUsernameAsync(string username)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+        }
+
+        public async Task<bool> UpdateUserAsync(int userId, string username, string email, string? passwordPlain = null)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return false;
+
+            user.Username = username;
+            user.Email = email;
+            if (!string.IsNullOrEmpty(passwordPlain))
+                user.PasswordPlain = passwordPlain;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

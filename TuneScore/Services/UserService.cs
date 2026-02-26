@@ -66,5 +66,22 @@ namespace TuneScore.Services
             byte[] hash = SecurityHelper.EncryptPassword(registerModel.PasswordPlain, salt);
             await _userSaltRepository.CreateAsync(registerModel.IdUser, hash, salt);
         }
+
+        public async Task<User?> GetUserByIdAsync(int userId)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            return user;
+        }
+
+        public async Task<User?> GetUserByUsernameAsync(string username)
+        {
+            var user = await _userRepository.GetUserByUsernameAsync(username);
+            return user;
+        }
+
+        public async Task<bool> UpdateProfileAsync(int userId, string username, string email, string? newPasswordPlain = null)
+        {
+            return await _userRepository.UpdateUserAsync(userId, username, email, newPasswordPlain);
+        }
     }
 }
