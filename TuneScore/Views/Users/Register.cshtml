@@ -6,14 +6,19 @@
 <h2>@ViewData["Title"]</h2>
 
 <form asp-action="Register" method="post">
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+    <input type="hidden" name="IdUser" value="@(Model?.IdUser)" />
+    <input type="hidden" name="CreatedAt" value="@(Model?.CreatedAt)" />
+    <input type="hidden" name="Role" value="@(Model?.Role)" />
+
     <div class="mb-3">
         <label for="Username" class="form-label">Username</label>
-        <input name="Username" id="Username" class="form-control" required />
+        <input name="Username" id="Username" class="form-control" required value="@(Model?.Username)" />
     </div>
 
     <div class="mb-3">
         <label for="Email" class="form-label">Email</label>
-        <input name="Email" id="Email" type="email" class="form-control" required />
+        <input name="Email" id="Email" type="email" class="form-control" required value="@(Model?.Email)" />
     </div>
 
     <div class="mb-3">
