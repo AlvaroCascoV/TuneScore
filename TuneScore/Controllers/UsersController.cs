@@ -23,7 +23,7 @@ namespace TuneScore.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(string username, string password, bool rememberMe)
+        public async Task<IActionResult> Login(string username, string password)
         {
             if (!UserValidationHelper.ValidateLoginInput(ModelState, username, password))
             {
