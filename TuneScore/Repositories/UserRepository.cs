@@ -1,43 +1,49 @@
-﻿using TuneScore.Data;
+using Microsoft.EntityFrameworkCore;
+using TuneScore.Data;
 using TuneScore.Models;
 using TuneScore.Repositories.Interfaces;
 
-public class UserRepository : IUserRepository
+namespace TuneScore.Repositories
 {
-    private readonly TuneScoreContext _context;
-
-    public UserRepository(TuneScoreContext context)
+    public class UserRepository : IUserRepository
     {
-        _context = context;
-    }
+        private readonly TuneScoreContext _context;
 
-    public async Task RegisterUserAsync(User user, byte[] hash, byte[] salt)
-    {
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        var userSalt = new UserSalt
+        public UserRepository(TuneScoreContext context)
         {
-            UserId = user.Id,
-            PasswordHash = hash,
-            Salt = salt
-        };
+            _context = context;
+        }
 
-        _context.UserSalts.Add(userSalt);
-        await _context.SaveChangesAsync();
-    }
+        public async Task<V_UserLogin?> GetUserForLoginAsync(string username)
+        {
+            return await _context.V_UserLogin
+                .FirstOrDefaultAsync(u => u.Username == username);
+        }
 
-    public async Task<V_UserLogin?> GetUserForLoginAsync(string username)
-    {
-        return await _context.V_UserLogin
-            .FirstOrDefaultAsync(u => u.Username == username);
-    }
+        public async Task<User?> GetUserWithRatingsAsync(int userId)
+        {
+            return await _context.Users
+                .Include(u => u.Ratings)
+                .ThenInclude(r => r.Song)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+        }
 
-    public async Task<User?> GetUserWithRatingsAsync(int userId)
-    {
-        return await _context.Users
-            .Include(u => u.Ratings)
-            .ThenInclude(r => r.Song)
-            .FirstOrDefaultAsync(u => u.Id == userId);
+        public async Task RegisterUserAsync(Register registerModel)
+        {
+            var newUser = new User
+            {
+                Username = registerModel.Username,
+                Email = registerModel.Email,
+                PasswordPlain = registerModel.PasswordPlain,
+                Role = string.IsNullOrWhiteSpace(registerModel.Role) ? "User" : registerModel.Role,
+                CreatedAt = registerModel.CreatedAt == default ? DateTime.Now : registerModel.CreatedAt
+            };
+
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+
+            // Guardo la id autoincremental del usuario
+            registerModel.IdUser = newUser.Id;
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -25,7 +25,7 @@ namespace TuneScore.Models
         public byte[] PasswordHash { get; set; }
 
         [Column("Salt")]
-        public byte[] Salt { get; set; }
+        public string Salt { get; set; }
     }
 }
 

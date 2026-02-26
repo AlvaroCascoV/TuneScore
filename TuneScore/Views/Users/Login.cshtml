@@ -1,0 +1,31 @@
+@{
+    ViewData["Title"] = "Login";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="Login" method="post">
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label for="username" class="form-label">Nombre de usuario</label>
+        <input name="username" id="username" class="form-control" required value="@(ViewData["Username"])" />
+    </div>
+
+    <div class="mb-3">
+        <label for="password" class="form-label">Contraseña</label>
+        <input name="password" id="password" type="password" class="form-control" required />
+    </div>
+
+    <div class="mb-3 form-check">
+        <input name="rememberMe" id="rememberMe" type="checkbox" class="form-check-input" />
+        <label for="rememberMe" class="form-check-label">Recordarme</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+</form>
+
+<div class="mt-3">
+    <span>¿No tienes una cuenta?</span>
+    <a asp-controller="Users" asp-action="Register">Regístrate aquí</a>
+</div>

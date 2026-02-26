@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -8,25 +8,35 @@ using System.Threading.Tasks;
 using TuneScore.Data;
 using TuneScore.Helpers;
 using TuneScore.Models;
+using TuneScore.Repositories.Interfaces;
+using TuneScore.Services.Interfaces;
 
 namespace TuneScore.Controllers
 {
     public class AlbumsController : Controller
     {
         private readonly TuneScoreContext _context;
+        private readonly IRepositoryAlbums _albumsRepository;
+        private readonly IAlbumImageService _albumImageService;
         private HelperPathProvider helperPath;
 
-        public AlbumsController(TuneScoreContext context, HelperPathProvider helperPath)
+        public AlbumsController(
+            TuneScoreContext context,
+            IRepositoryAlbums albumsRepository,
+            IAlbumImageService albumImageService,
+            HelperPathProvider helperPath)
         {
             _context = context;
+            _albumsRepository = albumsRepository;
+            _albumImageService = albumImageService;
             this.helperPath = helperPath;
         }
 
         // GET: Albums
         public async Task<IActionResult> Index()
         {
-            var tuneScoreContext = _context.Albums.Include(a => a.Artist);
-            return View(await tuneScoreContext.ToListAsync());
+            var albums = await _albumsRepository.GetAllAlbumsAsync();
+            return View(albums);
         }
 
         // GET: Albums/Details/5
@@ -37,9 +47,7 @@ namespace TuneScore.Controllers
                 return NotFound();
             }
 
-            var album = await _context.Albums
-                .Include(a => a.Artist)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var album = await _albumsRepository.GetAlbumByIdAsync(id.Value);
             if (album == null)
             {
                 return NotFound();
@@ -62,34 +70,20 @@ namespace TuneScore.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Title,ReleaseYear,ArtistId,CreatedAt")] Album album, IFormFile fichero)
         {
-            if (fichero == null || !fichero.ContentType.StartsWith("image/"))
+            if (!AlbumHelper.ValidateCreateImage(ModelState, fichero))
             {
-                ModelState.AddModelError("", "Debe subir una imagen válida.");
                 return View(album);
             }
             if (ModelState.IsValid)
             {
                 if (fichero != null && fichero.Length > 0)
                 {
-                    // Generar nombre único
-                    string extension = Path.GetExtension(fichero.FileName);
-                    string fileName = Guid.NewGuid().ToString() + extension;
-
-                    string path = this.helperPath.MapPath(fileName, Folders.Albums);
-
-                    using (Stream stream = new FileStream(path, FileMode.Create))
-                    {
-                        await fichero.CopyToAsync(stream);
-                    }
-
-                    // GUARDAMOS el nombre en la BD
-                    album.ImageName = fileName;
+                    album.ImageName = await _albumImageService.SaveNewImageAsync(fichero);
                 }
 
                 album.CreatedAt = DateTime.Now;
 
-                _context.Add(album);
-                await _context.SaveChangesAsync();
+                await _albumsRepository.AddAlbumAsync(album);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -106,7 +100,7 @@ namespace TuneScore.Controllers
                 return NotFound();
             }
 
-            var album = await _context.Albums.FindAsync(id);
+            var album = await _albumsRepository.GetAlbumByIdAsync(id.Value);
             if (album == null)
             {
                 return NotFound();
@@ -124,7 +118,7 @@ namespace TuneScore.Controllers
         {
             if (id != album.Id) return NotFound();
 
-            var albumDb = await _context.Albums.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
+            var albumDb = await _albumsRepository.GetAlbumByIdAsync(id);
             if (albumDb == null) return NotFound();
 
             // Manually update fields to avoid model binding issues
@@ -135,40 +129,16 @@ namespace TuneScore.Controllers
             // File upload
             if (fichero != null && fichero.Length > 0)
             {
-                if (!fichero.ContentType.StartsWith("image/"))
+                if (!AlbumHelper.ValidateEditImage(ModelState, fichero))
                 {
-                    ModelState.AddModelError("", "Solo se permiten imágenes.");
                     ViewData["ArtistId"] = new SelectList(_context.Artists, "Id", "Id", albumDb.ArtistId);
                     return View(albumDb);
                 }
 
-                // Delete old image
-                if (!string.IsNullOrEmpty(albumDb.ImageName))
-                {
-                    string oldPath = helperPath.MapPath(albumDb.ImageName, Folders.Albums);
-                    if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
-                }
-
-                string extension = Path.GetExtension(fichero.FileName);
-                // Remove invalid filename chars and spaces
-                string safeTitle = string.Concat(album.Title.Where(c => !Path.GetInvalidFileNameChars().Contains(c)));
-                safeTitle = safeTitle.Replace(" ", "");
-
-                // Add "Icon" and the original extension
-                string fileName = $"{safeTitle}Icon{extension}";
-
-                string path = helperPath.MapPath(fileName, Folders.Albums);
-
-                using (Stream stream = new FileStream(path, FileMode.Create))
-                {
-                    await fichero.CopyToAsync(stream);
-                }
-
-                albumDb.ImageName = fileName;
+                albumDb.ImageName = await _albumImageService.ReplaceImageAsync(fichero, albumDb.ImageName, album.Title);
             }
 
-            _context.Update(albumDb);
-            await _context.SaveChangesAsync();
+            await _albumsRepository.UpdateAlbumAsync(albumDb);
 
             return RedirectToAction(nameof(Index));
         }
@@ -181,9 +151,7 @@ namespace TuneScore.Controllers
                 return NotFound();
             }
 
-            var album = await _context.Albums
-                .Include(a => a.Artist)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var album = await _albumsRepository.GetAlbumByIdAsync(id.Value);
             if (album == null)
             {
                 return NotFound();
@@ -197,13 +165,7 @@ namespace TuneScore.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var album = await _context.Albums.FindAsync(id);
-            if (album != null)
-            {
-                _context.Albums.Remove(album);
-            }
-
-            await _context.SaveChangesAsync();
+            await _albumsRepository.DeleteAlbumAsync(id);
             return RedirectToAction(nameof(Index));
         }
 

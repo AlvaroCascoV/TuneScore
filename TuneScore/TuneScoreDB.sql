@@ -2,6 +2,7 @@
 USE TuneScoreDB;
 GO
 
+IF OBJECT_ID('V_UserLogin', 'V') IS NOT NULL DROP VIEW V_UserLogin;
 IF OBJECT_ID('Ratings', 'U') IS NOT NULL DROP TABLE Ratings;
 IF OBJECT_ID('Songs', 'U') IS NOT NULL DROP TABLE Songs;
 IF OBJECT_ID('Albums', 'U') IS NOT NULL DROP TABLE Albums;
@@ -25,13 +26,14 @@ CREATE TABLE UserSalts (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL UNIQUE,
     PasswordHash VARBINARY(256) NOT NULL,
-    Salt VARBINARY(256) NOT NULL,
+    Salt NVARCHAR(256) NOT NULL,
 
     CONSTRAINT FK_UserSalts_Users
         FOREIGN KEY (UserId)
         REFERENCES Users(Id)
         ON DELETE CASCADE
 );
+
 -- =========================
 -- GENRES
 -- =========================
@@ -114,6 +116,20 @@ CREATE INDEX IX_Songs_GenreId ON Songs(GenreId);
 CREATE INDEX IX_Ratings_SongId ON Ratings(SongId);
 CREATE INDEX IX_Ratings_UserId ON Ratings(UserId);
 
+-- =========================
+-- VIEW FOR LOGIN
+-- =========================
+-- CREATE VIEW V_UserLogin
+-- AS
+-- SELECT
+--     u.Id,
+--     u.Username,
+--     u.Email,
+--     u.PasswordPlain,
+--     us.PasswordHash,
+--     us.Salt
+-- FROM Users u
+-- LEFT JOIN UserSalts us ON us.UserId = u.Id;
 
 
 USE TuneScoreDB;
@@ -154,8 +170,8 @@ VALUES
 INSERT INTO UserSalts (UserId, PasswordHash, Salt)
 SELECT 
     Id,
-    CONVERT(VARBINARY(256), 'FakeHash_' + Username),
-    CONVERT(VARBINARY(256), 'FakeSalt_' + Username)
+    CONVERT(VARBINARY(256), 'FakeHash_' + Username),  
+    'FakeSalt_' + Username
 FROM Users;
 -- =========================
 -- GENRES
@@ -179,27 +195,27 @@ INSERT INTO Artists (Name, ImageName) VALUES
 -- =========================
 -- ALBUMS
 INSERT INTO Albums (Title, ReleaseYear, ArtistId, ImageName) 
-SELECT N'City Lights', 2021, Id, N'CityLights.jpg'
+SELECT N'City Lights', 2021, Id, N'CityLightsIcon.jpg'
 FROM Artists WHERE Name = N'Neon Skies';
 
 INSERT INTO Albums (Title, ReleaseYear, ArtistId, ImageName) 
-SELECT N'Electric Dreams', 2022, Id, N'ElectricDreams.jpg'
+SELECT N'Electric Dreams', 2022, Id, N'ElectricDreamsIcon.jpg'
 FROM Artists WHERE Name = N'Neon Skies';
 
 INSERT INTO Albums (Title, ReleaseYear, ArtistId, ImageName) 
-SELECT N'Ocean Signals', 2020, Id, N'OceanSignals.jpg'
+SELECT N'Ocean Signals', 2020, Id, N'OceanSignalsIcon.jpg'
 FROM Artists WHERE Name = N'Crystal Waves';
 
 INSERT INTO Albums (Title, ReleaseYear, ArtistId, ImageName) 
-SELECT N'Night Frequency', 2023, Id, N'NightFrequency.jpg'
+SELECT N'Night Frequency', 2023, Id, N'NightFrequencyIcon.jpg'
 FROM Artists WHERE Name = N'Urban Pulse';
 
 INSERT INTO Albums (Title, ReleaseYear, ArtistId, ImageName) 
-SELECT N'Parallel Lines', 2021, Id, N'ParallelLines.jpg'
+SELECT N'Parallel Lines', 2021, Id, N'ParallelLinesIcon.jpg'
 FROM Artists WHERE Name = N'Silver Echo';
 
 INSERT INTO Albums (Title, ReleaseYear, ArtistId, ImageName) 
-SELECT N'Endless Roads', 2022, Id, N'EndlessRoads.jpg'
+SELECT N'Endless Roads', 2022, Id, N'EndlessRoadsIcon.jpg'
 FROM Artists WHERE Name = N'Midnight Drive';
 
 -- =========================

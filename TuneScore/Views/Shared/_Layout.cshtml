@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -44,8 +44,11 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
 
-                                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                                @if (Context.Session.GetInt32("UserId").HasValue)
                                 {
+                                    <li>
+                                        <span class="dropdown-item-text">@Context.Session.GetString("Username")</span>
+                                    </li>
                                     <li>
                                         <a class="dropdown-item"
                                            asp-controller="Profile"
@@ -57,7 +60,7 @@
                                     <li><hr class="dropdown-divider"></li>
 
                                     <li>
-                                        <form asp-controller="Account"
+                                        <form asp-controller="Users"
                                               asp-action="Logout"
                                               method="post"
                                               class="d-inline">
@@ -71,9 +74,17 @@
                                 {
                                     <li>
                                         <a class="dropdown-item"
-                                           asp-controller="Account"
+                                           asp-controller="Users"
                                            asp-action="Login">
                                             Iniciar sesión
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item"
+                                           asp-controller="Users"
+                                           asp-action="Register">
+                                            Registrarse
                                         </a>
                                     </li>
                                 }

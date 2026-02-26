@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -22,12 +22,8 @@ public partial class User
     [Column("Email")]
     public string Email { get; set; } = null!;
 
-    [StringLength(255)]
-    [Column("PasswordHash")]
-    public string PasswordHash { get; set; } = null!;
-
     [Column("PasswordPlain")]
-    public byte[] PasswordPlain { get; set; } = null!;
+    public string? PasswordPlain { get; set; }
 
     [StringLength(20)]
     [Column("Role")]
@@ -38,4 +34,7 @@ public partial class User
 
     [InverseProperty("User")]
     public virtual ICollection<Rating> Ratings { get; set; } = new List<Rating>();
+
+    [InverseProperty("User")]
+    public virtual UserSalt? UserSalt { get; set; }
 }

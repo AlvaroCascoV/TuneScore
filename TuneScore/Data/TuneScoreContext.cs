@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using TuneScore.Models;
@@ -7,9 +7,6 @@ namespace TuneScore.Data;
 
 public partial class TuneScoreContext : DbContext
 {
-    public TuneScoreContext()
-    {
-    }
 
     public TuneScoreContext(DbContextOptions<TuneScoreContext> options)
         : base(options)
@@ -33,8 +30,9 @@ public partial class TuneScoreContext : DbContext
     public virtual DbSet<UserSalt> UserSalts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=LOCALHOST\\DEVELOPER;Initial Catalog=TuneScoreDB;Persist Security Info=True;User ID=sa;Trust Server Certificate=True;");
+    {
+        // Configuration is provided via dependency injection in Program.cs.
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -101,10 +99,11 @@ public partial class TuneScoreContext : DbContext
         {
             entity.HasKey(e => e.Id);
 
-            entity.HasOne<User>()
-                .WithOne()
+            entity.HasOne(us => us.User)
+                .WithOne(u => u.UserSalt)
                 .HasForeignKey<UserSalt>(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_UserSalts_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);
