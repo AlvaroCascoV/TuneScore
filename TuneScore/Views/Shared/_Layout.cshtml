@@ -1,3 +1,4 @@
+@using TuneScore.Helpers
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,9 +27,12 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
+                        @if (SessionHelper.IsLoggedIn(Context.Session))
+                        {
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Albums" asp-action="Index">Albums</a>
                         </li>
+                        }
                     </ul>
 
                     <!-- PERFIL -->
@@ -44,10 +48,10 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
 
-                                @if (Context.Session.GetInt32("UserId").HasValue)
+                                @if (SessionHelper.IsLoggedIn(Context.Session))
                                 {
                                     <li>
-                                        <span class="dropdown-item-text">@Context.Session.GetString("Username")</span>
+                                        <span class="dropdown-item-text">@SessionHelper.GetUsername(Context.Session)</span>
                                     </li>
                                     <li>
                                         <a class="dropdown-item"
