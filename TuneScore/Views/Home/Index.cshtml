@@ -1,10 +1,62 @@
-﻿@model IEnumerable<TuneScore.Models.Song>
+@using TuneScore.Helpers
+@{
+    ViewData["Title"] = "Home";
+}
 
-<h1>TuneScore Songs</h1>
+<div class="landing-page">
+    <section class="hero py-5">
+        <div class="text-center py-lg-5">
+            <h1 class="display-4 fw-bold mb-3">TuneScore</h1>
+            <p class="lead text-muted mb-4 mx-auto" style="max-width: 32rem;">
+                Discover albums, rate your favourite songs and keep your music taste in one place.
+            </p>
+            @if (!SessionHelper.IsLoggedIn(Context.Session))
+            {
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a asp-controller="Users" asp-action="Login" class="btn btn-primary btn-lg px-4">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar sesión
+                    </a>
+                    <a asp-controller="Users" asp-action="Register" class="btn btn-outline-primary btn-lg px-4">
+                        <i class="bi bi-person-plus me-2"></i>Registrarse
+                    </a>
+                </div>
+            }
+        </div>
+    </section>
 
-<ul>
-    @foreach (var song in Model)
+    <section class="features py-5 border-top">
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="p-4">
+                    <i class="bi bi-disc fs-1 text-primary mb-3"></i>
+                    <h3 class="h5">Explora álbumes</h3>
+                    <p class="text-muted small mb-0">Navega por artistas y álbumes y descubre nueva música.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4">
+                    <i class="bi bi-star fs-1 text-primary mb-3"></i>
+                    <h3 class="h5">Valora canciones</h3>
+                    <p class="text-muted small mb-0">Pon nota a tus canciones favoritas y lleva un registro.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4">
+                    <i class="bi bi-music-note-list fs-1 text-primary mb-3"></i>
+                    <h3 class="h5">Tu biblioteca</h3>
+                    <p class="text-muted small mb-0">Todo tu historial de valoraciones en un solo sitio.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @if (!SessionHelper.IsLoggedIn(Context.Session))
     {
-        <li>@song.Title - @song.Album.Title - @song.Album.Artist.Name</li>
+        <section class="cta py-5 border-top bg-light rounded-3">
+            <div class="text-center py-3">
+                <p class="mb-3">¿Aún no tienes cuenta?</p>
+                <a asp-controller="Users" asp-action="Register" class="btn btn-primary">Crear cuenta gratis</a>
+            </div>
+        </section>
     }
-</ul>
+</div>
