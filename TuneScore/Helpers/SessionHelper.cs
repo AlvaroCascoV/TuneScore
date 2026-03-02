@@ -11,6 +11,10 @@ namespace TuneScore.Helpers
         public const string UserIdKey = "UserId";
         public const string UsernameKey = "Username";
         public const string EmailKey = "Email";
+        public const string RoleKey = "Role";
+
+        /// <summary>Role name that is allowed to create/edit/delete albums.</summary>
+        public const string AdminRole = "Admin";
 
         public static bool IsLoggedIn(ISession session)
         {
@@ -30,6 +34,19 @@ namespace TuneScore.Helpers
         public static string? GetEmail(ISession session)
         {
             return session.GetString(EmailKey);
+        }
+
+        public static string? GetRole(ISession session)
+        {
+            return session.GetString(RoleKey);
+        }
+
+        /// <summary>
+        /// Returns true if the current user has the Admin role. Use for album create/edit/delete access.
+        /// </summary>
+        public static bool IsAdmin(ISession session)
+        {
+            return string.Equals(GetRole(session), AdminRole, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
