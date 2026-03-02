@@ -51,6 +51,16 @@ namespace TuneScore.Repositories
             return await _context.Users.FindAsync(userId);
         }
 
+        public async Task<string?> GetUserRoleAsync(int userId)
+        {
+            var role = await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => u.Role)
+                .FirstOrDefaultAsync();
+            return role;
+        }
+
         public async Task<User?> GetUserByUsernameAsync(string username)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);

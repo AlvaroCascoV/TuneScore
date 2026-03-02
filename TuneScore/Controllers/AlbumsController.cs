@@ -9,6 +9,7 @@ using TuneScore.Data;
 using TuneScore.Helpers;
 using TuneScore.Models;
 using TuneScore.Repositories.Interfaces;
+using TuneScore.Services;
 using TuneScore.Services.Interfaces;
 
 namespace TuneScore.Controllers
@@ -18,17 +19,20 @@ namespace TuneScore.Controllers
         private readonly TuneScoreContext _context;
         private readonly IRepositoryAlbums _albumsRepository;
         private readonly IAlbumImageService _albumImageService;
+        private readonly UserService _userService;
         private HelperPathProvider helperPath;
 
         public AlbumsController(
             TuneScoreContext context,
             IRepositoryAlbums albumsRepository,
             IAlbumImageService albumImageService,
+            UserService userService,
             HelperPathProvider helperPath)
         {
             _context = context;
             _albumsRepository = albumsRepository;
             _albumImageService = albumImageService;
+            _userService = userService;
             this.helperPath = helperPath;
         }
 
@@ -57,8 +61,13 @@ namespace TuneScore.Controllers
         }
 
         // GET: Albums/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            if (!await _userService.IsCurrentUserAdminAsync(HttpContext.Session))
+            {
+                TempData["Message"] = "Necesitas ser administrador para crear un álbum.";
+                return RedirectToAction(nameof(Index));
+            }
             ViewData["ArtistId"] = new SelectList(_context.Artists, "Id", "Id");
             return View();
         }
@@ -70,6 +79,11 @@ namespace TuneScore.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Title,ReleaseYear,ArtistId,CreatedAt")] Album album, IFormFile fichero)
         {
+            if (!await _userService.IsCurrentUserAdminAsync(HttpContext.Session))
+            {
+                TempData["Message"] = "Necesitas ser administrador para crear un álbum.";
+                return RedirectToAction(nameof(Index));
+            }
             if (!AlbumHelper.ValidateCreateImage(ModelState, fichero))
             {
                 return View(album);
@@ -95,6 +109,11 @@ namespace TuneScore.Controllers
         // GET: Albums/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
+            if (!await _userService.IsCurrentUserAdminAsync(HttpContext.Session))
+            {
+                TempData["Message"] = "Necesitas ser administrador para editar un álbum.";
+                return RedirectToAction(nameof(Index));
+            }
             if (id == null)
             {
                 return NotFound();
@@ -116,6 +135,11 @@ namespace TuneScore.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Album album, IFormFile fichero)
         {
+            if (!await _userService.IsCurrentUserAdminAsync(HttpContext.Session))
+            {
+                TempData["Message"] = "Necesitas ser administrador para editar un álbum.";
+                return RedirectToAction(nameof(Index));
+            }
             if (id != album.Id) return NotFound();
 
             var albumDb = await _albumsRepository.GetAlbumByIdAsync(id);
@@ -146,6 +170,11 @@ namespace TuneScore.Controllers
         // GET: Albums/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
+            if (!await _userService.IsCurrentUserAdminAsync(HttpContext.Session))
+            {
+                TempData["Message"] = "Necesitas ser administrador para eliminar un álbum.";
+                return RedirectToAction(nameof(Index));
+            }
             if (id == null)
             {
                 return NotFound();
@@ -165,6 +194,11 @@ namespace TuneScore.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            if (!await _userService.IsCurrentUserAdminAsync(HttpContext.Session))
+            {
+                TempData["Message"] = "Necesitas ser administrador para eliminar un álbum.";
+                return RedirectToAction(nameof(Index));
+            }
             await _albumsRepository.DeleteAlbumAsync(id);
             return RedirectToAction(nameof(Index));
         }

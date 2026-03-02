@@ -39,10 +39,12 @@ namespace TuneScore.Controllers
                 return View();
             }
 
-            // Store basic user info in session for later access checks
+            // Store basic user info and role in session for access checks
             HttpContext.Session.SetInt32(SessionHelper.UserIdKey, user.Id);
             HttpContext.Session.SetString(SessionHelper.UsernameKey, user.Username);
             HttpContext.Session.SetString(SessionHelper.EmailKey, user.Email);
+            var fullUser = await _userService.GetUserByIdAsync(user.Id);
+            HttpContext.Session.SetString(SessionHelper.RoleKey, fullUser?.Role ?? "User");
 
             return RedirectToAction("Index", "Albums");
         }

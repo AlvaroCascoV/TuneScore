@@ -83,5 +83,18 @@ namespace TuneScore.Services
         {
             return await _userRepository.UpdateUserAsync(userId, username, email, newPasswordPlain);
         }
+
+        /// <summary>
+        /// Returns true if the current user (from session) has the Admin role. Admins can manage albums and other restricted actions.
+        /// Uses SessionHelper for user id and repo for role from database.
+        /// </summary>
+        public async Task<bool> IsCurrentUserAdminAsync(ISession session)
+        {
+            var userId = SessionHelper.GetUserId(session);
+            if (userId == null) return false;
+
+            var role = await _userRepository.GetUserRoleAsync(userId.Value);
+            return string.Equals(role, SessionHelper.AdminRole, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }
