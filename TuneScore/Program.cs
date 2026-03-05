@@ -15,6 +15,7 @@ builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<HelperPathProvider>();
 builder.Services.AddScoped<IRepositoryAlbums, RepositoryAlbums>();
+builder.Services.AddScoped<IRepositorySongs, RepositorySongs>();
 builder.Services.AddScoped<IAlbumImageService, AlbumImageService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserSaltRepository, UserSaltRepository>();

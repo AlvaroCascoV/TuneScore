@@ -1,0 +1,119 @@
+@model IEnumerable<TuneScore.Models.Song>
+@using TuneScore.Helpers
+@{
+    ViewData["Title"] = "Canciones";
+}
+<style>
+    .card:hover {
+        transform: translateY(-5px);
+        transition: 0.2s ease-in-out;
+    }
+</style>
+<h1 class="mb-4">Canciones</h1>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        @TempData["Message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (SessionHelper.IsAdmin(Context.Session))
+{
+    <p>
+        <a asp-action="Create" class="btn btn-primary">Crear nueva</a>
+    </p>
+}
+
+@if (Model != null && Model.Any())
+{
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-4 col-lg-3 mb-4">
+            <div class="card h-100 shadow-sm">
+
+                @if (item.Album?.ImageName != null)
+                {
+                    <img src="~/images/albums/@item.Album.ImageName"
+                         class="card-img-top"
+                         alt="@item.Title"
+                         style="height:250px; object-fit:cover;" />
+                }
+                else
+                {
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height:250px">
+                        <span class="text-white">Sin portada</span>
+                    </div>
+                }
+
+                <div class="card-body d-flex flex-column">
+
+                    <h5 class="card-title">@item.Title</h5>
+
+                    <p class="card-text text-muted mb-1">
+                        @item.Album?.Title
+                    </p>
+
+                    <p class="card-text mb-1">
+                        <small class="text-muted">@item.Genre?.Name</small>
+                    </p>
+
+                    <p class="card-text mb-1">
+                        <small class="text-muted">
+                            @if (item.DurationSeconds.HasValue)
+                            {
+                                @($"{item.DurationSeconds / 60}:{(item.DurationSeconds % 60):D2}")
+                            }
+                            else
+                            {
+                                @:—
+                            }
+                        </small>
+                    </p>
+
+                    <p class="card-text">
+                        <small class="text-muted">Valoración: —</small>
+                    </p>
+
+                    <div class="mt-auto">
+                        <a asp-action="Details"
+                           asp-route-id="@item.Id"
+                           class="btn btn-sm btn-outline-primary w-100 mb-1">
+                            Detalles
+                        </a>
+
+                        @if (SessionHelper.IsAdmin(Context.Session))
+                        {
+                            <div class="d-flex justify-content-between">
+                                <a asp-action="Edit"
+                                   asp-route-id="@item.Id"
+                                   class="btn btn-sm btn-outline-secondary w-50 me-1">
+                                    Editar
+                                </a>
+
+                                <a asp-action="Delete"
+                                   asp-route-id="@item.Id"
+                                   class="btn btn-sm btn-outline-danger w-50">
+                                    Eliminar
+                                </a>
+                            </div>
+                        }
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+}
+else
+{
+    <p class="text-muted">No hay canciones disponibles.</p>
+    @if (SessionHelper.IsAdmin(Context.Session))
+    {
+        <p><a asp-action="Create" class="btn btn-primary">Crear nueva</a> para añadir la primera.</p>
+    }
+}

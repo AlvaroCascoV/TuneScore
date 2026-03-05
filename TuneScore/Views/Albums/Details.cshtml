@@ -22,11 +22,18 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.ReleaseYear)
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ImageName)
+        <dt class="col-sm-2">
+            Portada
         </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ImageName)
+        <dd class="col-sm-10">
+            @if (!string.IsNullOrEmpty(Model.ImageName))
+            {
+                <img src="~/images/albums/@Model.ImageName" alt="@Model.Title" class="img-thumbnail" style="max-height: 280px; object-fit: cover;" />
+            }
+            else
+            {
+                <span class="text-muted">Sin imagen</span>
+            }
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.CreatedAt)
@@ -42,6 +49,83 @@
         </dd>
     </dl>
 </div>
+
+<div class="mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-music-note-list me-2"></i>Canciones
+                @if (Model.Songs != null && Model.Songs.Any())
+                {
+                    <span class="badge bg-secondary ms-2">@Model.Songs.Count</span>
+                }
+            </h5>
+            @if (SessionHelper.IsAdmin(Context.Session))
+            {
+                <a asp-controller="Songs" asp-action="Create" asp-route-albumId="@Model.Id" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i>Añadir canción
+                </a>
+            }
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Songs != null && Model.Songs.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 3rem;" class="text-center text-muted fw-normal">#</th>
+                                <th>Título</th>
+                                <th>Género</th>
+                                <th class="text-end" style="width: 5rem;">Duración</th>
+                                <th style="width: 6rem;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ var track = 1; }
+                            @foreach (var song in Model.Songs)
+                            {
+                                <tr>
+                                    <td class="text-center text-muted">@track</td>
+                                    <td>
+                                        <a asp-controller="Songs" asp-action="Details" asp-route-id="@song.Id" class="text-decoration-none fw-medium">@song.Title</a>
+                                    </td>
+                                    <td><span class="text-muted">@(song.Genre?.Name ?? "—")</span></td>
+                                    <td class="text-end text-muted">
+                                        @if (song.DurationSeconds.HasValue)
+                                        {
+                                            @($"{song.DurationSeconds / 60}:{(song.DurationSeconds % 60):D2}")
+                                        }
+                                        else
+                                        {
+                                            @:—
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <a asp-controller="Songs" asp-action="Details" asp-route-id="@song.Id" class="btn btn-sm btn-outline-primary">Detalles</a>
+                                    </td>
+                                </tr>
+                                track++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-music-note-beamed display-6"></i>
+                    <p class="mt-2 mb-0">No hay canciones en este álbum.</p>
+                    @if (SessionHelper.IsAdmin(Context.Session))
+                    {
+                        <a asp-controller="Songs" asp-action="Create" asp-route-albumId="@Model.Id" class="btn btn-outline-primary btn-sm mt-2">Añadir la primera</a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
 <div>
     @if (SessionHelper.IsAdmin(Context.Session))
     {

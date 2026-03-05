@@ -25,6 +25,8 @@ namespace TuneScore.Repositories
         {
             return await _context.Albums
                 .Include(a => a.Artist)
+                .Include(a => a.Songs)
+                .ThenInclude(s => s.Genre)
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
